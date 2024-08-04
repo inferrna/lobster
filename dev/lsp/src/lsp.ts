@@ -91,12 +91,16 @@ export class LSPInstance {
             result = this.readConfiguration(uri);
         }
 
-        const folders = await this.getWorkspaceFoldersPaths();
-        return result.then(s => ({
+        const folders = [uri.fsPath];
+        folders.concat(await this.getWorkspaceFoldersPaths());
+
+        console.error("Got folders in getDocumentSettings: " + JSON.stringify(folders));
+        console.error("Got result in getDocumentSettings: " + JSON.stringify(result));
+        return result.then(s => (s ? {
             executable: s.executable || this.globalSettings.executable,
             imports: [...s.imports, ...folders],
             experimental: s.experimental || this.globalSettings.experimental
-        }));
+        } : defaultSettings));
     }
 
     async validateDocument(document: LobsterDocument) {
@@ -114,13 +118,16 @@ export class LSPInstance {
         if (!this.connection) return null;
         if (this.errored()) return null;
 
-        return this.connection.workspace.getWorkspaceFolders();
+        const folders = this.connection.workspace.getWorkspaceFolders();
+        console.error("Got folders in getWorkspaceFolders: " + JSON.stringify(folders));
+        return folders;
     }
 
     async getWorkspaceFoldersPaths(): Promise<string[]> {
         if (this.errored()) return [];
 
         const folders = await this.getWorkspaceFolders();
+        console.error("Got folders in getWorkspaceFoldersPaths: " + JSON.stringify(folders));
         if (!folders) return [];
         return folders.map(f => URI.parse(f.uri).fsPath);
     }
