@@ -15,7 +15,7 @@ export enum ErroredState {
     InvalidExecutable,
 }
 
-const defaultSettings: LobsterSettings = { executable: '', imports: [], experimental: false };
+const defaultSettings: LobsterSettings = { executable: 'lobster', imports: [], experimental: false };
 
 export class LSPInstance {
     connection: Connection;
@@ -52,7 +52,9 @@ export class LSPInstance {
         }) as Promise<LobsterSettings>;
 
         //Validate config
-        config.then(c => {
+        config.then(_c => {
+            const c = _c || defaultSettings;
+
             const throwError = (msg: string) => {
                 this.connection.window.showErrorMessage(msg);
                 this.errorState = ErroredState.InvalidExecutable;
