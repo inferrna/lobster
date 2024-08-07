@@ -71,6 +71,7 @@ export class LobsterDocument implements TextDocument {
     public async getRelative(lsp: LSPInstance): Promise<string> {
         if (this._relative) return this._relative;
 
+        console.error("Get folders in getRelative");
         const folders = await lsp.getWorkspaceFolders();
         console.error("Got folders in getRelative: " + JSON.stringify(folders));
         const folder = folders?.filter(

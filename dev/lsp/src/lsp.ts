@@ -1,6 +1,6 @@
 import { Connection, TextDocuments, WorkspaceFolder } from "vscode-languageserver";
 import { exec } from 'child_process';
-import { URI } from "vscode-uri";
+import { URI, Utils } from "vscode-uri";
 import { LobsterDocument, LobsterDocumentState } from "./document";
 import { LobsterBuiltinsDoc, LobsterFunctionSignature, getBuiltinsDoc } from "./lobster";
 
@@ -46,6 +46,7 @@ export class LSPInstance {
     }
 
     readConfiguration(uri: URI): Promise<LobsterSettings> {
+        console.error("readConfiguration for "+uri);
         const config = this.connection.workspace.getConfiguration({
             scopeUri: uri.toString(),
             section: 'lobster'
@@ -53,9 +54,11 @@ export class LSPInstance {
 
         //Validate config
         config.then(_c => {
+            console.error("readConfiguration got config "+JSON.stringify(_c));
             const c = _c || defaultSettings;
 
             const throwError = (msg: string) => {
+                console.error("readConfiguration got error: "+msg);
                 this.connection.window.showErrorMessage(msg);
                 this.errorState = ErroredState.InvalidExecutable;
                 return config;
@@ -63,8 +66,9 @@ export class LSPInstance {
 
             if (c.executable.length == 0)
                 return throwError("Lobster executable path is not set.");
-
-            getBuiltinsDoc(c).then((d) => this.builtinsDoc = d);
+            if (!this.builtinsDoc || this.builtinsDoc.length==0) {
+                getBuiltinsDoc(c).then((d) => this.builtinsDoc = d);
+            }
 
             exec(c.executable, (error, stdout, stderr) => {
                 if (stderr) {
@@ -77,7 +81,10 @@ export class LSPInstance {
             });
         });
 
+        console.error("readConfiguration set here ");
         this.documentSettings.set(uri, config);
+        console.error("readConfiguration returns here " + JSON.stringify(config));
+
         return config;
     }
 
@@ -91,7 +98,7 @@ export class LSPInstance {
             result = this.readConfiguration(uri);
         }
 
-        const folders = [uri.fsPath];
+        const folders = [Utils.dirname(uri).fsPath];
         folders.concat(await this.getWorkspaceFoldersPaths());
 
         console.error("Got folders in getDocumentSettings: " + JSON.stringify(folders));
@@ -120,6 +127,7 @@ export class LSPInstance {
 
         const folders = this.connection.workspace.getWorkspaceFolders();
         console.error("Got folders in getWorkspaceFolders: " + JSON.stringify(folders));
+        if(Object.keys(folders).length==0) return [];
         return folders;
     }
 
@@ -128,7 +136,7 @@ export class LSPInstance {
 
         const folders = await this.getWorkspaceFolders();
         console.error("Got folders in getWorkspaceFoldersPaths: " + JSON.stringify(folders));
-        if (!folders) return [];
+        if (!folders || Object.keys(folders).length==0 ) return [];
         return folders.map(f => URI.parse(f.uri).fsPath);
     }
 

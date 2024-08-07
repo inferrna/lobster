@@ -136,7 +136,7 @@ export async function queryDefinition(
 ): Promise<QueryDefinitionResult> {
     console.error("Call to queryDefinition");
     function parseOutput(input: string): QueryDefinitionResult {
-        console.error("parseOutput in queryDefinition");
+        console.error("parseOutput in queryDefinition "+input);
         if (input.length == 0) return {};
 
         let declartionLocation: LobsterLocation | undefined;

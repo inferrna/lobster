@@ -28,9 +28,10 @@ let hasCodeActionLiteralSupportCapability = false;
 
 connection.onInitialize((params: InitializeParams) => {
     const capabilities = params.capabilities;
-
+    console.error(JSON.stringify(params));
     // Does the client support the `workspace/configuration` request?
     // If not, we fall back using global settings.
+    console.error(JSON.stringify(params));
     instance.hasConfigurationCapability = !!(
         capabilities.workspace && !!capabilities.workspace.configuration
     );
@@ -76,7 +77,7 @@ connection.onInitialized(() => {
     }
     if (hasWorkspaceFolderCapability) {
         connection.workspace.onDidChangeWorkspaceFolders(_event => {
-            console.log('Workspace folder change event received.');
+            console.error('Workspace folder change event received.');
         });
     }
 });
